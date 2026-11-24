@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Al Ghani Mobiles">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Al Ghani Mobiles Offline Manager</title>
+<style>
+:root{--ink:#111827;--blue:#2563eb;--cyan:#06b6d4;--pink:#ec4899;--yellow:#facc15;--bg:#f3f5f9;--muted:#64748b;--line:#e2e8f0;--green:#15803d;--red:#b91c1c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#172033;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:82px}
+header{background:var(--ink);color:white;padding:14px 16px;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--cyan),var(--pink));display:grid;place-items:center;font-weight:900}
+header b{font-size:16px;letter-spacing:.2px}header small{display:block;color:#cbd5e1;font-size:11px}
+main{max-width:850px;margin:auto;padding:14px}
+.page{display:none}.page.on{display:block}
+h2{font-size:20px;margin:5px 0 14px}h3{font-size:15px;margin:0 0 12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:14px;margin:10px 0;box-shadow:0 2px 8px #11182708}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.stat small{color:var(--muted);display:block}.stat strong{display:block;font-size:21px;margin-top:5px}
+label{display:block;font-size:12px;font-weight:700;color:#475569;margin:0 0 5px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;background:white;color:#111827;font:inherit;min-width:0}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}
+button{font:inherit;cursor:pointer}.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:750;background:var(--blue);color:white}.btn.alt{background:#eaf0ff;color:#1e40af;border:1px solid #c7d2fe}.btn.warn{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#fff;border-top:1px solid var(--line);display:flex;overflow-x:auto;padding:7px 4px max(7px,env(safe-area-inset-bottom));}
+nav button{flex:1;min-width:66px;border:0;background:transparent;color:#64748b;font-size:10px;font-weight:700;padding:5px 2px}
+nav button span{display:block;font-size:19px;margin-bottom:3px}nav button.active{color:var(--blue)}
+.tablebox{overflow:auto;border:1px solid var(--line);border-radius:12px;background:white;margin-top:10px}
+table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);font-size:12px;white-space:nowrap}th{background:#eff6ff;color:#1e3a8a}tr:last-child td{border:0}
+.pill{font-size:10px;font-weight:800;border-radius:30px;padding:4px 8px;background:#e0f2fe;color:#075985}.pill.sold{background:#dcfce7;color:#166534}
+.muted{color:var(--muted);font-size:12px}.good{color:var(--green);font-weight:800}.bad{color:var(--red);font-weight:800}.hint{background:#fffbeb;border:1px solid #fde68a;color:#854d0e;border-radius:10px;padding:11px;font-size:12px;line-height:1.5;margin:10px 0}
+.empty{text-align:center;color:var(--muted);padding:22px}
+@media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}.form{grid-template-columns:repeat(3,1fr)}.full{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header><div class="logo">AG</div><div><b>AL GHANI MOBILES</b><small>Offline Inventory & Accounts</small></div></header>
+<main>
+<section id="home" class="page on">
+<h2>Dashboard</h2>
+<div class="stats">
+<div class="card stat"><small>Phones in stock</small><strong id="dPhones">0</strong></div>
+<div class="card stat"><small>Phone stock cost</small><strong id="dInvestment">Rs 0</strong></div>
+<div class="card stat"><small>Phone profit</small><strong id="dPhoneProfit">Rs 0</strong></div>
+<div class="card stat"><small>Accessory units left</small><strong id="dAccQty">0</strong></div>
+<div class="card stat"><small>Accessory profit</small><strong id="dAccProfit">Rs 0</strong></div>
+<div class="card stat"><small>To receive</small><strong id="dReceive">Rs 0</strong></div>
+<div class="card stat"><small>To pay</small><strong id="dPay">Rs 0</strong></div>
+<div class="card stat"><small>Net ledger</small><strong id="dNet">Rs 0</strong></div>
+</div>
+<div class="card"><h3>Branch stock</h3><div id="branchSummary" class="muted"></div></div>
+<div class="hint"><b>Offline mode:</b> Entries save on this device in this browser. No internet or cloud account is needed. Use Backup regularly. To move data to another phone, export backup here and import it there.</div>
+</section>
+
+<section id="phones" class="page">
+<h2>Phones inventory</h2>
+<div class="card"><h3 id="phoneHeading">Add phone</h3>
+<form id="phoneForm" class="form">
+<input id="phoneEdit" type="hidden">
+<div><label>Date added</label><input id="pDate" type="date" required></div>
+<div><label>Phone model</label><input id="pModel" placeholder="iPhone 15 Pro" required></div>
+<div><label>Storage</label><input id="pStorage" placeholder="256GB"></div>
+<div><label>PTA status</label><select id="pPta"><option>PTA Approved</option><option>Non-PTA</option><option>Factory Unlock</option><option>SIM Lock / JV</option><option>Other</option></select></div>
+<div><label>IMEI / serial</label><input id="pImei"></div>
+<div><label>Branch location</label><select id="pLocation"><option>Phase 6</option><option>Zainab Tower</option></select></div>
+<div><label>Purchase cost</label><input id="pCost" type="number" min="0" required></div>
+<div><label>Extra cost</label><input id="pExtra" type="number" min="0" value="0"></div>
+<div><label>Status</label><select id="pStatus"><option>In Stock</option><option>Sold</option></select></div>
+<div><label>Sale price</label><input id="pSale" type="number" min="0" placeholder="When sold"></div>
+<div><label>Sold by</label><select id="pSeller"><option value="">Not sold yet</option><option>Fahad</option><option>Atif</option><option>Muzammil</option><option>Owner</option></select></div>
+<div><label>Sale date</label><input id="pSaleDate" type="date"></div>
+<div class="full"><label>Notes</label><input id="pNotes" placeholder="Battery health, condition, etc."></div>
+<div class="full row"><button class="btn" type="submit">Save phone</button><button class="btn alt" type="button" id="phoneClear">Clear</button></div>
+</form></div>
+<div class="row"><input id="phoneSearch" placeholder="Search model / IMEI" style="flex:1"><select id="phoneLocFilter" style="max-width:145px"><option value="">All branches</option><option>Phase 6</option><option>Zainab Tower</option></select><select id="phoneStateFilter" style="max-width:130px"><option value="">All status</option><option>In Stock</option><option>Sold</option></select></div>
+<div class="tablebox"><table><thead><tr><th>Phone</th><th>Branch</th><th>Cost</th><th>Sale</th><th>Profit</th><th>Sold by</th><th>Status</th><th></th></tr></thead><tbody id="phoneRows"></tbody></table></div>
+</section>
+
+<section id="accessories" class="page">
+<h2>Accessories stock</h2>
+<div class="card"><h3 id="accHeading">Add accessory</h3><form id="accForm" class="form">
+<input id="accEdit" type="hidden">
+<div><label>SKU / unique code</label><input id="aSku" placeholder="CASE-01" required></div>
+<div><label>Accessory name</label><input id="aName" placeholder="iPhone cover" required></div>
+<div><label>Opening quantity</label><input id="aQty" type="number" min="0" value="0" required></div>
+<div><label>Additional stock</label><input id="aAdded" type="number" min="0" value="0"></div>
+<div><label>Unit purchase cost</label><input id="aCost" type="number" min="0" required></div>
+<div class="full row"><button class="btn" type="submit">Save accessory</button><button class="btn alt" type="button" id="accClear">Clear</button></div>
+</form></div>
+<div class="tablebox"><table><thead><tr><th>SKU</th><th>Accessory</th><th>Total</th><th>Sold</th><th>Left</th><th>Unit cost</th><th>Stock value</th><th></th></tr></thead><tbody id="accRows"></tbody></table></div>
+</section>
+
+<section id="accsales" class="page">
+<h2>Accessory sales</h2><div class="card"><h3>Enter a sale</h3><form id="saleForm" class="form">
+<div><label>Date</label><input id="sDate" type="date" required></div>
+<div><label>Accessory</label><select id="sSku" required></select></div>
+<div><label>Quantity sold</label><input id="sQty" type="number" min="1" value="1" required></div>
+<div><label>Sale price per unit</label><input id="sPrice" type="number" min="0" required></div>
+<div class="full"><label>Notes</label><input id="sNote"></div>
+<div class="full"><button class="btn" type="submit">Save accessory sale</button></div>
+</form></div>
+<div class="tablebox"><table><thead><tr><th>Date</th><th>SKU</th><th>Name</th><th>Qty</th><th>Sale total</th><th>Cost</th><th>Profit</th><th></th></tr></thead><tbody id="saleRows"></tbody></table></div>
+</section>
+
+<section id="ledger" class="page">
+<h2>Credit / Debit ledger</h2><div class="stats"><div class="card stat"><small>Customers se lene hain</small><strong id="lReceive">Rs 0</strong></div><div class="card stat"><small>Suppliers ko dene hain</small><strong id="lPay">Rs 0</strong></div></div>
+<div class="card"><h3>New transaction</h3><form id="ledgerForm" class="form">
+<div><label>Date</label><input id="lDate" type="date" required></div>
+<div><label>Person / business</label><input id="lPerson" placeholder="Name" required></div>
+<div><label>Entry type</label><select id="lType"><option value="debit_customer">Customer se lene hain</option><option value="credit_supplier">Supplier ko dene hain</option><option value="received">Customer se paisay mile</option><option value="paid">Supplier ko paisay diye</option></select></div>
+<div><label>Amount (PKR)</label><input id="lAmount" type="number" min="1" required></div>
+<div class="full"><label>Details</label><input id="lNote" placeholder="Invoice / phone / payment detail"></div>
+<div class="full"><button class="btn" type="submit">Save transaction</button></div>
+</form>
+<div class="hint">Example: Customer se Rs 20,000 lene hain → “Customer se lene hain”. Rs 5,000 milne par same naam se “Customer se paisay mile”. Supplier ko dene aur payment karne ke liye isi tarah entries karein.</div></div>
+<div class="card"><h3>Person-wise balances</h3><div class="tablebox"><table><thead><tr><th>Name</th><th>Lene hain</th><th>Dene hain</th></tr></thead><tbody id="balances"></tbody></table></div></div>
+<div class="tablebox"><table><thead><tr><th>Date</th><th>Person</th><th>Entry</th><th>Amount</th><th>Details</th><th></th></tr></thead><tbody id="ledgerRows"></tbody></table></div>
+</section>
+
+<section id="backup" class="page">
+<h2>Backup & settings</h2><div class="card"><h3>Data backup</h3><p class="muted">Download your full business data as a backup file. Store it somewhere safe. Import it on another device to transfer data.</p><div class="row"><button class="btn" id="exportBtn">Download backup</button><label class="btn alt" style="margin:0">Import backup<input id="importInput" type="file" accept=".json,application/json" hidden></label></div></div>
+<div class="card"><h3>Important</h3><p class="muted">This is an offline, single-device version. It does not automatically combine entries from employee phones. Each phone/browser stores its own data. For shared data, a cloud database is required.</p><button class="btn warn" id="deleteAll">Delete all local data</button></div></section>
+</main>
+<nav id="nav">
+<button class="active" data-id="home"><span>⌂</span>Home</button>
+<button data-id="phones"><span>📱</span>Phones</button>
+<button data-id="accessories"><span>🎧</span>Stock</button>
+<button data-id="accsales"><span>＋</span>Sales</button>
+<button data-id="ledger"><span>⇄</span>Ledger</button>
+<button data-id="backup"><span>⚙</span>Backup</button>
+</nav>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id), KEY='AGM_OFFLINE_DB_V2';
+let db=readDB();
+function readDB(){try{let x=JSON.parse(localStorage.getItem(KEY)||'{}');return {phones:x.phones||[],accessories:x.accessories||[],sales:x.sales||[],ledger:x.ledger||[]}}catch(e){return {phones:[],accessories:[],sales:[],ledger:[]}}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(db));render()}catch(e){alert('Device storage full. Please export a backup and clear some old data.')}}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function n(v){return Number(v)||0}function rs(v){return 'Rs '+Math.round(n(v)).toLocaleString('en-PK')}
+function today(){let d=new Date(),z=d.getTimezoneOffset()*60000;return new Date(d-z).toISOString().slice(0,10)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function go(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.id===id));if(id==='accsales')fillAccessories();window.scrollTo(0,0)}
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.id)));
+['pDate','sDate','lDate'].forEach(x=>$(x).value=today());
+
+function clearPhone(){ $('phoneForm').reset();$('phoneEdit').value='';$('pDate').value=today();$('pExtra').value=0;$('pStatus').value='In Stock';$('phoneHeading').textContent='Add phone';}
+$('phoneClear').addEventListener('click',clearPhone);
+$('phoneForm').addEventListener('submit',e=>{e.preventDefault();let x={id:$('phoneEdit').value||id(),date:$('pDate').value,model:$('pModel').value.trim(),storage:$('pStorage').value,pta:$('pPta').value,imei:$('pImei').value,location:$('pLocation').value,cost:n($('pCost').value),extra:n($('pExtra').value),status:$('pStatus').value,sale:n($('pSale').value),seller:$('pSeller').value,saleDate:$('pSaleDate').value,notes:$('pNotes').value};if(x.status==='Sold'&&!x.saleDate)x.saleDate=today();let i=db.phones.findIndex(y=>y.id===x.id);if(i<0)db.phones.push(x);else db.phones[i]=x;clearPhone();persist();});
+function editPhone(id){let p=db.phones.find(x=>x.id===id);if(!p)return;$('phoneEdit').value=p.id;[['pDate','date'],['pModel','model'],['pStorage','storage'],['pPta','pta'],['pImei','imei'],['pLocation','location'],['pCost','cost'],['pExtra','extra'],['pStatus','status'],['pSale','sale'],['pSeller','seller'],['pSaleDate','saleDate'],['pNotes','notes']].forEach(([a,b])=>$(a).value=p[b]??'');$('phoneHeading').textContent='Edit phone';go('phones');}
+function renderPhones(){let q=$('phoneSearch').value.toLowerCase(),loc=$('phoneLocFilter').value,st=$('phoneStateFilter').value;let list=db.phones.filter(p=>(!q||(p.model+' '+p.imei).toLowerCase().includes(q))&&(!loc||p.location===loc)&&(!st||p.status===st));$('phoneRows').innerHTML=list.map(p=>`<tr><td><b>${esc(p.model)}</b><br>${esc(p.storage)} • ${esc(p.pta)}</td><td>${esc(p.location)}</td><td>${rs(p.cost+p.extra)}</td><td>${p.status==='Sold'?rs(p.sale):'—'}</td><td class="good">${p.status==='Sold'?rs(p.sale-p.cost-p.extra):'—'}</td><td>${esc(p.seller||'—')}</td><td><span class="pill ${p.status==='Sold'?'sold':''}">${esc(p.status)}</span></td><td><button class="btn alt" data-edit-phone="${p.id}">Edit</button> <button class="btn warn" data-del="phones" data-id="${p.id}">Del</button></td></tr>`).join('')||'<tr><td colspan="8" class="empty">No phone entries yet.</td></tr>';}
+$('phoneSearch').addEventListener('input',renderPhones);$('phoneLocFilter').addEventListener('change',renderPhones);$('phoneStateFilter').addEventListener('change',renderPhones);
+
+function clearAcc(){$('accForm').reset();$('accEdit').value='';$('aQty').value=0;$('aAdded').value=0;$('accHeading').textContent='Add accessory';}
+$('accClear').addEventListener('click',clearAcc);
+$('accForm').addEventListener('submit',e=>{e.preventDefault();let x={id:$('accEdit').value||id(),sku:$('aSku').value.trim().toUpperCase(),name:$('aName').value.trim(),qty:n($('aQty').value),added:n($('aAdded').value),cost:n($('aCost').value)};if(db.accessories.some(a=>a.sku===x.sku&&a.id!==x.id)){alert('SKU already exists. Use a unique code.');return;}let i=db.accessories.findIndex(a=>a.id===x.id);if(i<0)db.accessories.push(x);else db.accessories[i]=x;clearAcc();persist();});
+function soldQty(sku){return db.sales.filter(s=>s.sku===sku).reduce((t,s)=>t+s.qty,0)}
+function editAcc(id){let a=db.accessories.find(x=>x.id===id);if(!a)return;$('accEdit').value=a.id;$('aSku').value=a.sku;$('aName').value=a.name;$('aQty').value=a.qty;$('aAdded').value=a.added;$('aCost').value=a.cost;$('accHeading').textContent='Edit accessory';go('accessories');}
+function fillAccessories(){let old=$('sSku').value;$('sSku').innerHTML='<option value="">Choose accessory</option>'+db.accessories.map(a=>`<option value="${esc(a.sku)}">${esc(a.sku)} — ${esc(a.name)} (left ${a.qty+a.added-soldQty(a.sku)})</option>`).join('');if([...$('sSku').options].some(o=>o.value===old))$('sSku').value=old;}
+function renderAccessories(){$('accRows').innerHTML=db.accessories.map(a=>{let total=a.qty+a.added,s=soldQty(a.sku),left=total-s;return `<tr><td>${esc(a.sku)}</td><td>${esc(a.name)}</td><td>${total}</td><td>${s}</td><td>${left}</td><td>${rs(a.cost)}</td><td>${rs(total*a.cost)}</td><td><button class="btn alt" data-edit-acc="${a.id}">Edit</button> <button class="btn warn" data-del="accessories" data-id="${a.id}">Del</button></td></tr>`}).join('')||'<tr><td colspan="8" class="empty">No accessory stock added.</td></tr>';fillAccessories();}
+$('saleForm').addEventListener('submit',e=>{e.preventDefault();let a=db.accessories.find(x=>x.sku===$('sSku').value),qty=n($('sQty').value);if(!a){alert('Please select an accessory.');return;}let left=a.qty+a.added-soldQty(a.sku);if(qty>left){alert('Only '+left+' units are available.');return;}db.sales.push({id:id(),date:$('sDate').value,sku:a.sku,name:a.name,qty,price:n($('sPrice').value),cost:a.cost,note:$('sNote').value});$('saleForm').reset();$('sDate').value=today();$('sQty').value=1;persist();});
+function renderSales(){$('saleRows').innerHTML=db.sales.slice().reverse().map(s=>`<tr><td>${esc(s.date)}</td><td>${esc(s.sku)}</td><td>${esc(s.name)}</td><td>${s.qty}</td><td>${rs(s.qty*s.price)}</td><td>${rs(s.qty*s.cost)}</td><td class="good">${rs(s.qty*(s.price-s.cost))}</td><td><button class="btn warn" data-del="sales" data-id="${s.id}">Del</button></td></tr>`).join('')||'<tr><td colspan="8" class="empty">No accessory sales recorded.</td></tr>';}
+
+const label={debit_customer:'Customer se lene hain',credit_supplier:'Supplier ko dene hain',received:'Customer se wasool',paid:'Supplier ko ada'};
+$('ledgerForm').addEventListener('submit',e=>{e.preventDefault();db.ledger.push({id:id(),date:$('lDate').value,person:$('lPerson').value.trim(),type:$('lType').value,amount:n($('lAmount').value),note:$('lNote').value});$('ledgerForm').reset();$('lDate').value=today();persist();});
+function balances(){let m={};db.ledger.forEach(x=>{let k=x.person.toLowerCase();if(!m[k])m[k]={name:x.person,rec:0,pay:0};if(x.type==='debit_customer')m[k].rec+=x.amount;if(x.type==='received')m[k].rec-=x.amount;if(x.type==='credit_supplier')m[k].pay+=x.amount;if(x.type==='paid')m[k].pay-=x.amount;});return Object.values(m);}
+function renderLedger(){let b=balances();$('balances').innerHTML=b.map(x=>`<tr><td>${esc(x.name)}</td><td>${rs(Math.max(0,x.rec))}</td><td>${rs(Math.max(0,x.pay))}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">No balances yet.</td></tr>';$('ledgerRows').innerHTML=db.ledger.slice().reverse().map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person)}</td><td>${label[x.type]}</td><td>${rs(x.amount)}</td><td>${esc(x.note||'—')}</td><td><button class="btn warn" data-del="ledger" data-id="${x.id}">Del</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">No ledger entries yet.</td></tr>';let rec=b.reduce((t,x)=>t+Math.max(0,x.rec),0),pay=b.reduce((t,x)=>t+Math.max(0,x.pay),0);$('lReceive').textContent=rs(rec);$('lPay').textContent=rs(pay);}
+document.addEventListener('click',e=>{let ep=e.target.closest('[data-edit-phone]');if(ep)editPhone(ep.dataset.editPhone);let ea=e.target.closest('[data-edit-acc]');if(ea)editAcc(ea.dataset.editAcc);let del=e.target.closest('[data-del]');if(del){if(!confirm('Delete this record?'))return;let group=del.dataset.del,ident=del.dataset.id;db[group]=db[group].filter(x=>x.id!==ident);persist();}});
+function renderHome(){let stock=db.phones.filter(p=>p.status==='In Stock'),sold=db.phones.filter(p=>p.status==='Sold'),b=balances(),rec=b.reduce((t,x)=>t+Math.max(0,x.rec),0),pay=b.reduce((t,x)=>t+Math.max(0,x.pay),0);$('dPhones').textContent=stock.length;$('dInvestment').textContent=rs(stock.reduce((t,p)=>t+p.cost+p.extra,0));$('dPhoneProfit').textContent=rs(sold.reduce((t,p)=>t+p.sale-p.cost-p.extra,0));$('dAccQty').textContent=db.accessories.reduce((t,a)=>t+a.qty+a.added-soldQty(a.sku),0);$('dAccProfit').textContent=rs(db.sales.reduce((t,s)=>t+s.qty*(s.price-s.cost),0));$('dReceive').textContent=rs(rec);$('dPay').textContent=rs(pay);$('dNet').textContent=rs(rec-pay);$('branchSummary').innerHTML=['Phase 6','Zainab Tower'].map(loc=>`<p><b>${loc}:</b> ${stock.filter(p=>p.location===loc).length} phones • ${rs(stock.filter(p=>p.location===loc).reduce((t,p)=>t+p.cost+p.extra,0))} stock cost</p>`).join('');}
+function render(){renderPhones();renderAccessories();renderSales();renderLedger();renderHome();}
+$('exportBtn').addEventListener('click',()=>{let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Al-Ghani-Offline-Backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+$('importInput').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!Array.isArray(x.phones)||!Array.isArray(x.accessories)||!Array.isArray(x.ledger))throw Error();if(!confirm('Replace this device data with backup data?'))return;db={phones:x.phones,accessories:x.accessories,sales:x.sales||[],ledger:x.ledger};persist();alert('Backup imported.');}catch(err){alert('This backup file is not valid.');}};r.readAsText(f);e.target.value='';});
+$('deleteAll').addEventListener('click',()=>{if(!confirm('Delete all saved data from this device? Export backup first if needed.'))return;db={phones:[],accessories:[],sales:[],ledger:[]};persist();});
+render();
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{})); }
+})();
+</script>
+</body></html>
